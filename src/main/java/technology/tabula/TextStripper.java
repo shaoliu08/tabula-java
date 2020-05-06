@@ -13,6 +13,8 @@ public class TextStripper extends PDFTextStripper {
     private PDDocument document;
     public ArrayList<TextElement> textElements;
     public RectangleSpatialIndex<TextElement> spatialIndex;
+
+    // why not maxCharWidth and maxCharHeight
     public float minCharWidth = Float.MAX_VALUE;
     public float minCharHeight = Float.MAX_VALUE;
 
@@ -30,10 +32,8 @@ public class TextStripper extends PDFTextStripper {
     }
 
     @Override
-    protected void writeString(String string, List<TextPosition> textPositions) throws IOException
-    {
-        for (TextPosition textPosition: textPositions)
-        {
+    protected void writeString(String string, List<TextPosition> textPositions) throws IOException {
+        for (TextPosition textPosition: textPositions) {
             if (textPosition == null) {
                 continue;
             }
@@ -68,6 +68,11 @@ public class TextStripper extends PDFTextStripper {
         }
     }
 
+    /**
+     * if any of the whole string is printable.
+     * @param s
+     * @return
+     */
     private boolean isPrintable(String s) {
         Character c;
         Character.UnicodeBlock block;

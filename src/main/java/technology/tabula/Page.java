@@ -1,6 +1,7 @@
 package technology.tabula;
 
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -15,11 +16,19 @@ public class Page extends Rectangle {
     private Integer rotation;
     private int pageNumber;
     private List<TextElement> texts;
+    private List<TextChunk> chunks;
     private List<Ruling> rulings, cleanRulings = null, verticalRulingLines = null, horizontalRulingLines = null;
     private float minCharWidth;
     private float minCharHeight;
     private RectangleSpatialIndex<TextElement> spatial_index;
+
+    public List<Rectangle> getImageBoundaries() {
+        return imageBoundaries;
+    }
+
+    private List<Rectangle> imageBoundaries;
     private PDPage pdPage;
+    private List<? extends Rectangle> rectangles;
 
     public Page(float top, float left, float width, float height, int rotation, int page_number, PDPage pdPage) {
         super(top, left, width, height);
@@ -39,12 +48,69 @@ public class Page extends Rectangle {
 
     public Page(float top, float left, float width, float height, int rotation, int page_number, PDPage pdPage,
             List<TextElement> characters, List<Ruling> rulings,
-            float minCharWidth, float minCharHeight, RectangleSpatialIndex<TextElement> index) {
+            float minCharWidth, float minCharHeight, RectangleSpatialIndex<TextElement> index,
+                List<Rectangle> imageBoundaries) {
 
         this(top, left, width, height, rotation, page_number, pdPage, characters, rulings);
         this.minCharHeight = minCharHeight;
         this.minCharWidth = minCharWidth;
         this.spatial_index = index;
+        this.imageBoundaries = imageBoundaries;
+    }
+
+    public void setChunks(List<TextChunk> chunks) {
+        this.chunks = chunks;
+    }
+
+    public List<TextChunk> getChunks() {
+        if (chunks==null) {
+            chunks = TextElement.mergeWords(this.getText(),  this.getVerticalRulings(), true);
+        }
+        return this.chunks;
+    }
+
+    public float inkRatio() {
+        return inkRatio(true);
+    }
+
+    public float inkRatio(boolean ignoreImages) {
+        float ratio = 0;
+        if (rectangles == null) {
+            List<TextChunk> chunks = this.getChunks();
+            float inkArea = 0;
+            for (TextChunk chunk :chunks) {
+                inkArea += chunk.getArea();
+            }
+            if (!ignoreImages) {
+                for (Rectangle rect : this.getImageBoundaries()) {
+                    inkArea += rect.getArea();
+                }
+            }
+            ratio = inkArea / this.getArea();
+
+        } else {
+            List<TextChunk> tcs = this.getChunks();
+            float inkArea = 0;
+            float areas = 0;
+            for (Rectangle rect : rectangles) {
+                for (TextChunk chunk : tcs) {
+                    if (rect.contains(chunk)) {
+                        inkArea += chunk.getArea();
+                    }
+                }
+                areas += rect.getArea();
+            }
+        }
+
+        return ratio;
+    }
+
+    public List<? extends Rectangle> getRectangles() {
+        return rectangles;
+    }
+
+    public void setRectangles(List<? extends Rectangle> rectangles) {
+        this.rectangles = rectangles;
     }
 
     public Page getArea(Rectangle area) {
@@ -76,7 +142,8 @@ public class Page extends Rectangle {
                 Ruling.cropRulingsToArea(getRulings(), area),
                 min_char_width,
                 min_char_height,                
-                spatial_index);
+                spatial_index,
+                imageBoundaries);
         
         rv.addRuling(new Ruling(
                 new Point2D.Double(rv.getLeft(), 

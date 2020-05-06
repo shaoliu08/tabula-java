@@ -62,6 +62,29 @@ public class TextChunk extends RectangularTextContainer<TextElement> implements 
     }
 
     /**
+     * get the max height of chunk
+     * @return
+     */
+    public float getMaxHeight() {
+        float height = 0;
+        for (TextElement te : textElements) {
+            height = Math.max(height, te.height);
+        }
+        return height;
+    }
+
+    /**
+     * get the max width of space
+     * @return
+     */
+    public float getMaxWidthOfSpace() {
+        float widthOfSpace = 0;
+        for (TextElement te : textElements) {
+            widthOfSpace = Math.max(widthOfSpace, te.getWidthOfSpace());
+        }
+        return widthOfSpace;
+    }
+    /**
      * Splits a TextChunk into N TextChunks, where each chunk is of a single directionality, and
      * then reverse the RTL ones.
      * what we're doing here is *reversing* the Unicode bidi algorithm
@@ -81,16 +104,16 @@ public class TextChunk extends RectangularTextContainer<TextElement> implements 
             //TODO: we need to loop over the textelement characters
             //      because it is possible for a textelement to contain multiple characters?
 
-
+            DirectionalityOptions teDirectionality = directionalities.get(Character.getDirectionality(te.getText().charAt(0)));
             // System.out.println(te.getText() + " is " + Character.getDirectionality(te.getText().charAt(0) ) + " " + directionalities.get(Character.getDirectionality(te.getText().charAt(0) )));
             if (buff.size() == 0) {
                 buff.add(te);
-                buffDirectionality = directionalities.get(Character.getDirectionality(te.getText().charAt(0)));
+                buffDirectionality = teDirectionality; // directionalities.get(Character.getDirectionality(te.getText().charAt(0)));
             } else {
                 if (buffDirectionality == DirectionalityOptions.NONE) {
-                    buffDirectionality = directionalities.get(Character.getDirectionality(te.getText().charAt(0)));
+                    buffDirectionality = teDirectionality; // directionalities.get(Character.getDirectionality(te.getText().charAt(0)));
                 }
-                DirectionalityOptions teDirectionality = directionalities.get(Character.getDirectionality(te.getText().charAt(0)));
+//                DirectionalityOptions teDirectionality = directionalities.get(Character.getDirectionality(te.getText().charAt(0)));
 
                 if (teDirectionality == buffDirectionality || teDirectionality == DirectionalityOptions.NONE) {
                     if (Character.getDirectionality(te.getText().charAt(0)) == java.lang.Character.DIRECTIONALITY_WHITESPACE && (buffDirectionality == (isLtrDominant ? DirectionalityOptions.RTL : DirectionalityOptions.LTR))) {

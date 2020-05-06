@@ -1,6 +1,7 @@
 package technology.tabula;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.pdfbox.pdmodel.font.PDFont;
@@ -8,12 +9,15 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 @SuppressWarnings("serial")
 public class TextElement extends Rectangle implements HasText {
 
-    private final String text;
+    private String text;
     private final PDFont font;
     private float fontSize;
     private float widthOfSpace, dir;
     private static final float AVERAGE_CHAR_TOLERANCE = 0.3f;
 
+    public TextElement() {
+        this(0, 0, 0, 0, null, 0, null, 0);
+    }
     public TextElement(float y, float x, float width, float height,
                        PDFont font, float fontSize, String c, float widthOfSpace) {
         this(y, x, width, height, font, fontSize, c, widthOfSpace, 0f);
@@ -34,6 +38,9 @@ public class TextElement extends Rectangle implements HasText {
         return text;
     }
 
+    public void appText(String append) {
+        this.text = this.text + append;
+    }
     public float getDirection() {
         return dir;
     }
@@ -41,6 +48,7 @@ public class TextElement extends Rectangle implements HasText {
     public float getWidthOfSpace() {
         return widthOfSpace;
     }
+    public void setWidthOfSpace(float widthOfSpace) {this.widthOfSpace = widthOfSpace;}
 
     public PDFont getFont() {
         return font;
@@ -103,6 +111,28 @@ public class TextElement extends Rectangle implements HasText {
         return mergeWords(textElements, new ArrayList<Ruling>());
     }
 
+    public static List<TextChunk> mergeWords(List<TextElement> textElements, boolean ignoreSpace) {
+        return mergeWords(textElements, new ArrayList<Ruling>(), ignoreSpace);
+    }
+
+    public static List<TextChunk> mergeWords(List<TextElement> tes, List<Ruling> verticalRulings, boolean ignoreSpace) {
+        List<TextChunk> textChunks = mergeWords(tes, verticalRulings);
+        Iterator<TextChunk> it = textChunks.iterator();
+        while (it.hasNext()) {
+            TextChunk textChunk = it.next();
+            if ("".equals(textChunk.getText())) {
+                it.remove();
+            } else {
+                List<TextElement> list = textChunk.textElements;
+                while (list.size()>0 && " ".equals(list.get(list.size()-1).getText())) {
+                    list.remove(list.size()-1);
+                }
+                TextChunk tc = new TextChunk(list);
+                textChunk.setFrame(tc.getFrame());
+            }
+        }
+        return textChunks;
+    }
     /**
      * heuristically merge a list of TextElement into a list of TextChunk
      * ported from from PDFBox's PDFTextStripper.writePage, with modifications.
@@ -161,7 +191,8 @@ public class TextElement extends Rectangle implements HasText {
             for (Ruling r : verticalRulings) {
                 if (
                         (verticallyOverlapsRuling(prevChar, r) && verticallyOverlapsRuling(chr, r)) &&
-                                (prevChar.x < r.getPosition() && chr.x > r.getPosition()) || (prevChar.x > r.getPosition() && chr.x < r.getPosition())
+                                (prevChar.x < r.getPosition() && chr.x > r.getPosition()) ||
+                                (prevChar.x > r.getPosition() && chr.x < r.getPosition())
                         ) {
                     acrossVerticalRuling = true;
                     break;

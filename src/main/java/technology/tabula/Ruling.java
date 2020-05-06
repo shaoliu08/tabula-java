@@ -32,17 +32,17 @@ public class Ruling extends Line2D.Float {
      * Normalize almost horizontal or almost vertical lines
      */
     public void normalize() {
-
+        double variance = 1d;
         double angle = this.getAngle();
-        if (Utils.within(angle, 0, 1) || Utils.within(angle, 180, 1)) { // almost horizontal
+        if (Utils.within(angle, 0, variance) || Utils.within(angle, 180, variance)) { // almost horizontal
             this.setLine(this.x1, this.y1, this.x2, this.y1);
         }
-        else if (Utils.within(angle, 90, 1) || Utils.within(angle, 270, 1)) { // almost vertical
+        else if (Utils.within(angle, 90, variance) || Utils.within(angle, 270, variance)) { // almost vertical
             this.setLine(this.x1, this.y1, this.x1, this.y2);
         }
-//        else {
-//            System.out.println("oblique: " + this + " ("+ this.getAngle() + ")");
-//        }
+        else {
+            System.err.printf("oblique: %s(%f)", this.toString(), this.getAngle());
+        }
     }
 
     public boolean vertical() {

@@ -7,6 +7,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 import org.apache.commons.cli.ParseException;
@@ -38,9 +39,15 @@ public class Utils {
         return (Math.abs(f1 - f2) < EPSILON);
     }
 
+    /**
+     * round a double to a float with a decimal place
+     * @param d
+     * @param decimalPlace
+     * @return
+     */
     public static float round(double d, int decimalPlace) {
         BigDecimal bd = new BigDecimal(Double.toString(d));
-        bd = bd.setScale(decimalPlace, BigDecimal.ROUND_HALF_UP);
+        bd.setScale(decimalPlace, RoundingMode.HALF_UP);
         return bd.floatValue();
     }
 

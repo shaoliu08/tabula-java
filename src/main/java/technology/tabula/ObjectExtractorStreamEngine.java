@@ -7,7 +7,6 @@ import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -30,6 +29,7 @@ class ObjectExtractorStreamEngine extends PDFGraphicsStreamEngine {
     private Logger log;
     private int clipWindingRule = -1;
     private GeneralPath currentPath = new GeneralPath();
+    private List<Rectangle> imageBoundaries;
 
     protected ObjectExtractorStreamEngine(PDPage page) {
         super(page);
@@ -37,6 +37,7 @@ class ObjectExtractorStreamEngine extends PDFGraphicsStreamEngine {
         this.log = LoggerFactory.getLogger(ObjectExtractorStreamEngine.class);
 
         this.rulings = new ArrayList<>();
+        this.imageBoundaries = new ArrayList<>();
         this.pageTransform = null;
 
         // calculate page transform
@@ -64,6 +65,9 @@ class ObjectExtractorStreamEngine extends PDFGraphicsStreamEngine {
         currentPath.lineTo((float) p3.getX(), (float) p3.getY());
 
         currentPath.closePath();
+
+//        System.out.printf("Rectangle(left:%f, top:%f, width:%f, height:%f)\n",
+//                p0.getX(), p0.getY(), p2.getX()-p0.getX(), p0.getY()-p3.getY());
     }
 
     @Override
@@ -83,10 +87,29 @@ class ObjectExtractorStreamEngine extends PDFGraphicsStreamEngine {
         currentPath.curveTo(x1, y1, x2, y2, x3, y3);
     }
 
+    /**
+     * draw a rectangle for images
+     * @param img
+     */
     @Override
-    public void drawImage(PDImage arg0)  {
-        // TODO Auto-generated method stub
+    public void drawImage(PDImage img)  {
+        Matrix ctmNew = getGraphicsState().getCurrentTransformationMatrix();
+        float imageXScale = ctmNew.getScalingFactorX();
+        float imageYScale = ctmNew.getScalingFactorY();
+        float left = ctmNew.getTranslateX();
+        float top = ctmNew.getTranslateY();
+//        currentPath.moveTo(left, top);
+//        currentPath.lineTo(left + imageXScale, top);
+//        currentPath.lineTo(left + imageXScale, top + imageYScale);
+//        currentPath.lineTo(left, top + imageYScale);
+//        currentPath.closePath();
+//        strokePath();
 
+        imageBoundaries.add(new Rectangle(top, left, imageXScale, imageYScale));
+    }
+
+    public List<Rectangle> getImageBoundaries() {
+        return imageBoundaries;
     }
 
     @Override

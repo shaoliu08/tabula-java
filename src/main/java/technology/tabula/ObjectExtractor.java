@@ -43,7 +43,8 @@ public class ObjectExtractor {
         }
 
         return new Page(0, 0, w, h, pageRotation, pageNumber, p, pdfTextStripper.textElements,
-                se.rulings, pdfTextStripper.minCharWidth, pdfTextStripper.minCharHeight, pdfTextStripper.spatialIndex);
+                se.rulings, pdfTextStripper.minCharWidth, pdfTextStripper.minCharHeight, pdfTextStripper.spatialIndex,
+                se.getImageBoundaries());
     }
 
     public PageIterator extract(Iterable<Integer> pages) {

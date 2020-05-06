@@ -16,7 +16,12 @@ public class RectangleSpatialIndex<T extends Rectangle> {
         rectangles.add(te);
         si.insert(new Envelope(te.getLeft(), te.getRight(), te.getBottom(), te.getTop()), te);
     }
-    
+
+    /**
+     * Get all intersections objects with the input rectangle
+     * @param r
+     * @return
+     */
     public List<T> contains(Rectangle r) {
         List<T> intersection = si.query(new Envelope(r.getLeft(), r.getRight(), r.getTop(), r.getBottom()));
         List<T> rv = new ArrayList<T>();
